@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html><head>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <title>Carte Interactive DVF Nantes</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="googlebot" content="noindex, nofollow">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" type="text/css" href="Carte%20Interactive%20DVF%20Nantes_fichiers/result-light.html">
+    <script type="text/javascript" src="Carte%20Interactive%20DVF%20Nantes_fichiers/mapbox-gl.js"></script>
+    <link rel="stylesheet" type="text/css" href="Carte%20Interactive%20DVF%20Nantes_fichiers/mapbox-gl.css">
+
+  <style id="compiled-css" type="text/css">
+
+
+
+.map-overlay {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow:0 1px 2px rgba(0, 0, 0, 0.10);
+    font: 12px/20px 'Helvetica Neue', Arial, Helvetica, sans-serif;
+    margin: 10px 0 0 10px;
+    padding: 10px;
+    position: absolute;
+    top: 0;
+    width: 20%;
+	z-index: 2
+}
+
+.map-overlay fieldset {
+    border: none;
+    padding: 0;
+}
+
+.map-overlay select {
+    margin-bottom: 5px;
+    width: 100%;
+}
+
+.map-overlay label {
+    display: block;
+    font-weight: bold;
+    margin: 0 0 5px;
+}
+
+.map-overlay div {
+    color: black;
+    margin-bottom: 5px;
+    padding: 5px;
+    text-align: center;
+}
+
+#intro {
+    color: black;
+    font-weight: bold;
+    margin-bottom: 0;
+	font-size: 16px;
+}
+
+
+
+
+
+      
+
+#keys {
+    padding: 0; color: black;
+}
+
+.map-overlay div:last-of-type {
+    margin-bottom: 0;
+}
+ #map {
+            position:absolute;
+            top:0;
+            bottom:0;
+            width:100%;
+			left : 0%;
+			z-index: 1
+        }
+		
+		
+.hover {
+   position: absolute;
+            bottom: 0;
+            right: 0;
+            background: rgba(255, 255, 255, 0.8);
+            margin-right: 20px;
+            font-family: Arial, sans-serif;
+            overflow: auto;
+            border-radius: 5px;
+}
+
+
+		
+
+        #features {
+            top: 10%;
+            height: 35%;
+			 width: 25%;
+            margin-top: 10px;
+			 margin-left: 10px;
+           	z-index: 2
+        }
+
+
+	.annee {
+   position: absolute;
+            top: 1%;
+            right: 1%;
+			height :8%;
+			width : 420px;
+            background: rgba(255, 255, 255, 0.8);
+            margin-right: 10px;
+            font-family: Arial, sans-serif;
+            overflow: auto;
+            border-radius: 10px;
+			z-index: 2;
+			font-size : 9px;
+}  
+
+  </style>
+
+
+
+  <script type="text/javascript">//<![CDATA[
+
+    window.onload=function(){
+
+
+// ACCESS TOKEN      
+mapboxgl.accessToken = 'pk.eyJ1IjoibmluYW5vdW4iLCJhIjoiY2pjdHBoZGlzMnV4dDJxcGc5azJkbWRiYSJ9.o4dZRrdHcgVEKCveOXG1YQ';
+
+
+// CONFIGURATION CARTE
+var map = new mapboxgl.Map({
+    container: 'map', 
+    style: 'mapbox://styles/ninanoun/cjswczqwb1dkz1fqtlb01sw0e', 
+	center: [-1.553, 47.225],
+	zoom :12,
+	pitch: 10,
+	bearing: 0,
+	minZoom:9.1, maxZoom:18
+});
+
+
+
+
+// CONFIGURATION FLY TO
+
+var villes = {
+    'Aire urbaine': {'center': [-1.57, 47.251],'zoom': 9.3},
+    'Nantes': {'center': [-1.553, 47.225],'zoom': 12},
+    'Vertou': {'center': [-1.473, 47.155],'zoom': 12.5},
+    'Saint Herblain': {'center': [-1.652, 47.211],'zoom': 12.9},
+    'Carquefou': {'center': [-1.492, 47.297],'zoom': 12},
+	'Centre ville de Nantes': {'center': [-1.554, 47.213],'zoom': 13.5}
+};
+
+var citySelect = document.getElementById('city');
+citySelect.addEventListener('change', function (event) {
+    var city = event.target.value;
+    map.flyTo(villes[city]);
+});
+
+
+// CONFIGURATION LEGENDE
+var keys = document.getElementById('keys');
+var colors = {
+    'Moins de 2000 €/m²': '#1a9850',
+    '2000-2250 €/m²': '#66bd63',
+    '2250-2500 €/m²': '#a6d96a',
+    '2500-2750 €/m²': '#d9ef8b',
+    '2750-3000 €/m²': '#fee08b',
+    '3000-3250 €/m²': '#fdae61',
+    '3250-3500 €/m²': '#f46d43',
+	'Supérieur à 3500 €/m²': '#d73027',
+};
+
+var caseExpression = ['case'];
+
+for (var key in colors) {
+    var swatch = document.createElement('div');
+    swatch.style.backgroundColor = colors[key];
+    swatch.innerHTML = key;
+    keys.appendChild(swatch);}
+
+
+
+// APPEL DE LA CARTE
+
+map.on('load', function() {
+
+
+	// Ajout des transactions sous forme de points
+
+	map.addSource('DVF', {
+        type: 'vector',
+        url: 'mapbox://ninanoun.9nlzjw19'
+    });
+	
+	map.addLayer({
+        'id': 'DVF',
+        'type': 'circle',
+		'attributionControl': false,
+        'source': 'DVF',
+        'source-layer': 'Transactions-49h0ep',
+        'layout': {'visibility': 'visible'},
+        'paint': {'circle-color': {
+                  property: 'PrixM2OK',
+                stops: [
+                     [0, '#1a9850'],
+                    [2000, '#66bd63'],
+                    [2250, '#a6d96a'],
+                    [2500, '#d9ef8b'],
+                    [2750, '#fee08b'],
+					[3000, '#fdae61'],
+					[3250, '#f46d43'],
+					[3500, '#d73027'],]}, 
+					'circle-radius': { property: 'PrixOK', stops: [ [{zoom: 14, value: 10000}, 1], [{zoom: 14, value: 3000000}, 6], [{zoom: 16, value: 10000}, 3], [{zoom: 16, value: 2000000}, 14] ] }},
+					'minzoom':12});
+				
+	
+// Ajout des prix IRIS sous forme de FILL (couche annee ensemble)
+	
+	map.addSource('Communes', {
+        type: 'vector',
+        url: 'mapbox://ninanoun.2hqgp7x5'
+    });
+    
+	
+	
+	// Polygones des IRIS invisible pour le hover
+		map.addLayer({
+        'id': 'Communesvide',
+        'type': 'fill',
+        'source': 'Communes',
+        'source-layer': 'IRIS-ajnaas',
+        'layout': {'visibility': 'visible'},
+		'paint': {'fill-color': '#000000','fill-opacity' : 0.01}}); 
+    
+	// Polygones mises en forme pour prixM2
+     	map.addLayer({
+        'id': 'Communes',
+        'type': 'fill',
+        'source': 'Communes',
+        'source-layer': 'IRIS-ajnaas',
+        'layout': {'visibility': 'visible'},
+		'maxzoom':12,
+		'paint': {'fill-color': {
+                  property: 'm2OK',
+                stops: [
+                     [0, '#1a9850'],
+                    [2000, '#66bd63'],
+                    [2250, '#a6d96a'],
+                    [2500, '#d9ef8b'],
+                    [2750, '#fee08b'],
+					[3000, '#fdae61'],
+					[3250, '#f46d43'],
+					[3500, '#d73027'],]}, 
+					}
+					}); 
+
+       map.setPaintProperty('Communes', 'fill-opacity', ["interpolate",["exponential", 1],["zoom"],9,1,12,0.6]);
+
+
+// Ajout des prix au m2 des IRIS sous forme de FILL par annee
+		
+		
+map.addSource('Communesannee', {
+        type: 'vector',
+        url: 'mapbox://ninanoun.c8im2vgj'
+    });
+    
+	map.addLayer({
+        'id': 'Communesannee',
+        'type': 'fill',
+        'source': 'Communesannee',
+        'source-layer': 'IRISANNEE-48h57g',
+        'layout': {'visibility': 'none'},
+    	'maxzoom':12,
+		'paint': {'fill-color': {
+                  property: 'prix',
+                  stops: [
+                     [0, '#1a9850'],
+                    [2000, '#66bd63'],
+                    [2250, '#a6d96a'],
+                    [2500, '#d9ef8b'],
+                    [2750, '#fee08b'],
+					[3000, '#fdae61'],
+					[3250, '#f46d43'],
+					[3500, '#d73027'],]},
+					}
+}); 
+
+       map.setPaintProperty('Communesannee', 'fill-opacity', ["interpolate",["exponential", 1],["zoom"],9,1,12,0.6]);
+
+
+
+	// Ajout des contours des IRIS 
+
+	map.addLayer({
+        'id': 'Communes2',
+        'type': 'line',
+        'source': 'Communes',
+        'source-layer': 'IRIS-ajnaas',
+        'layout': {'visibility': 'visible'},
+        'layout': {'visibility': 'visible',
+        'line-join': 'round','line-cap': 'round'},
+        'paint': {'line-color': '#BEBEBE'}
+		 });
+	
+     map.setPaintProperty('Communes2', 'line-width', ["interpolate",["exponential", 1],["zoom"],10,0.05,15,2],);
+
+
+
+	
+     // AJOUT DES Limites des communes
+
+map.addSource('communeslimites', {
+        type: 'vector',
+        url: 'mapbox://ninanoun.3i1oxeql'
+    });
+
+map.addLayer({
+        'id': 'communeslimites',
+        'type': 'line',
+        'source': 'communeslimites',
+        'source-layer': 'Communes-8co69j',
+        'layout': {'visibility': 'visible',
+        'line-join': 'round','line-cap': 'round'},
+        'paint': {'line-color': '#000000'},
+		'maxzoom':15
+	}); 
+	
+	map.setPaintProperty('communeslimites', 'line-width', ["interpolate",["exponential", 1],["zoom"],9.3,0.5,16,1.3]);
+
+
+// Configuration selection par type de biens
+        document
+          .getElementById('filters')
+          .addEventListener('change', function (e) {
+            var day = e.target.value;
+            // update the map filter
+            if (day === 'all') {
+              filterDay = ['!=', ['string', ['get', 'type']], 'placeholder'];
+            } else if (day === 'weekday') {
+              filterDay = [
+                'match',
+                ['get', 'type'],
+                ['Appartement'],
+                false,
+                true
+              ];
+            } else if (day === 'weekend') {
+              filterDay = [
+                'match',
+                ['get', 'type'],
+                ['Appartement'],
+                true,
+                false
+              ];
+            } else {
+              console.log('error');
+            }
+            map.setFilter('DVF', ['all', filterDay]);
+          });
+
+	//Interactivité HOVER (fenetre)
+		
+    map.on('mousemove', function (e) {
+        var states = map.queryRenderedFeatures(e.point, {
+            layers: ['Communesvide']});
+        if (states.length > 0) {
+            document.getElementById('pd').innerHTML = "<h2><strong>" + states[0].properties.nom_com+ "</strong></h2> <hr> <h3><strong>" + states[0].properties.nom_iris + "</strong></h3> <p><strong><em>"  + states[0].properties.m2OK+  " € le m² </strong> (moyenne 2014-2019) </em></p> <p><strong><em>"  + states[0].properties.prixok+  " € </strong> (prix moyen des biens) </em></p><p><strong> <em>"  + states[0].properties.Nb_Transac +  " biens vendus </strong> entre 2014 et 2019</em></p><p><strong><em>"  + states[0].properties.NbMaisons +  "</strong> Maisons</em></p><p><strong><em>"  + states[0].properties.NbAppart +  "</strong> Appartements</em></p>"
+	    } else {
+            document.getElementById('pd').innerHTML = '<p><strong>Survolez les communnes pour afficher une synthèse des transactions DVF</strong></p>';}
+    });
+	
+	
+	// Interactivité CLICK
+
+map.on('click', function (e) {
+    var features = map.queryRenderedFeatures(e.point, { layers: ['DVF'] });
+    if (!features.length) {return;}
+    var feature = features[0];
+    var popup = new mapboxgl.Popup({ offset: [10, -15] })
+        .setLngLat(feature.geometry.coordinates)
+        .setHTML('<h2>' + feature.properties.type +  '</h2>  <h3>' 
+		+"Prix : " + feature.properties.PrixOK +  ' euros</h3> <h3>'
+		+"Surface : " + feature.properties.SurfaceOK +  ' m²</h3><h3>'
+		+"Prix m² : " + feature.properties.PrixM2OK +  ' €/m²</h3><p>'
+		+"Date de la vente: " + feature.properties.date + '</p>' )  
+	    .addTo(map);
+});
+
+     
+	 // Configuration selection par annee
+
+document
+          .getElementById('2014')
+          .addEventListener('input', function (e) {
+		    map.setLayoutProperty('Communesannee', 'visibility', 'visible');
+			map.setLayoutProperty('Communes', 'visibility', 'none');
+            var hour = parseInt(e.target.value);
+            // update the map
+            map.setFilter('Communesannee', [
+              '==',
+              ['number', ['get', 'AnneeOK']],
+              2014
+            ]);
+            
+          });
+		  
+			  document
+          .getElementById('2015')
+          .addEventListener('input', function (e) {
+		    map.setLayoutProperty('Communesannee', 'visibility', 'visible');
+			map.setLayoutProperty('Communes', 'visibility', 'none');
+            var hour = parseInt(e.target.value);
+            // update the map
+            map.setFilter('Communesannee', [
+              '==',
+              ['number', ['get', 'AnneeOK']],
+              2015
+            ]);
+            
+          });
+
+	
+		  document
+          .getElementById('2016')
+          .addEventListener('input', function (e) {
+		    map.setLayoutProperty('Communesannee', 'visibility', 'visible');
+			map.setLayoutProperty('Communes', 'visibility', 'none');
+            var hour = parseInt(e.target.value);
+            // update the map
+            map.setFilter('Communesannee', [
+              '==',
+              ['number', ['get', 'AnneeOK']],
+              2016
+            ]);
+            
+          });
+		  document
+          .getElementById('2017')
+          .addEventListener('input', function (e) {
+		    map.setLayoutProperty('Communesannee', 'visibility', 'visible');
+			map.setLayoutProperty('Communes', 'visibility', 'none');
+            var hour = parseInt(e.target.value);
+            // update the map
+            map.setFilter('Communesannee', [
+              '==',
+              ['number', ['get', 'AnneeOK']],
+              2017
+            ]);
+            
+          });
+		  document
+          .getElementById('2018')
+          .addEventListener('input', function (e) {
+		    map.setLayoutProperty('Communesannee', 'visibility', 'visible');
+			map.setLayoutProperty('Communes', 'visibility', 'none');
+            var hour = parseInt(e.target.value);
+            // update the map
+            map.setFilter('Communesannee', [
+              '==',
+              ['number', ['get', 'AnneeOK']],
+              2018
+            ]);
+            
+          });		  
+		  
+		  document
+          .getElementById('2019')
+          .addEventListener('input', function (e) {
+            map.setLayoutProperty('Communesannee', 'visibility', 'visible');
+			map.setLayoutProperty('Communes', 'visibility', 'none');
+			var hour = parseInt(e.target.value);
+            // update the map
+            map.setFilter('Communesannee', [
+              '==',
+              ['number', ['get', 'AnneeOK']],
+              2019
+            ]);
+            
+          });
+		  
+		  
+          document
+		  .getElementById('Depart')
+		  .addEventListener('click', function () 
+          {map.setLayoutProperty('Communes', 'visibility', 'visible'); 
+          map.setLayoutProperty('Communesannee', 'visibility', 'none');
+          });
+
+
+
+});
+
+var scale = new mapboxgl.ScaleControl({
+maxWidth: 80,
+unit: 'imperial'
+});
+map.addControl(scale, 'bottom-right');
+ 
+scale.setUnit('metric');
+
+
+    }
+
+
+
+</script>
+
+<style id="style-1-cropbar-clipper">/* Copyright 2014 Evernote Corporation. All rights reserved. */
+.en-markup-crop-options {
+    top: 18px !important;
+    left: 50% !important;
+    margin-left: -100px !important;
+    width: 200px !important;
+    border: 2px rgba(255,255,255,.38) solid !important;
+    border-radius: 4px !important;
+}
+
+.en-markup-crop-options div div:first-of-type {
+    margin-left: 0px !important;
+}
+</style></head>
+<body cz-shortcut-listen="true">
+    <div id="map" class="mapboxgl-map">
+<!-- Modify the style: right position so it matches with the mapbox attribution -->
+    <div id="attribution" class="mapboxgl-ctrl mapboxgl-ctrl-attrib mapboxgl-ctrl-bottom-right" style="position: fixed; bottom: 0; right: 230px;">
+        <a href="https://www.sites.univ-rennes2.fr/mastersigat/Webmapping/*">Crédit : Réalisation, Boris Mericskay, 2020 | DGFiP, IGN</a> &nbsp;|&nbsp; 
+       <a href="https://www.sites.univ-rennes2.fr/mastersigat/Webmapping/*">Attribution n</a> &nbsp;|
+    </div>
+	
+	<div class="map-overlay">
+    
+	<fieldset>
+        <div id="intro">Explorer les prix de l'immobilier résidentiel de l'aire urbaine de Nantes</div>
+		<hr>
+        <label>Choisir une zone</label>
+        <select id="city" name="city">
+            <option value="Nantes" selected="selected">Nantes</option>
+			 <option value="Centre ville de Nantes">Centre ville de Nantes</option>
+            <option value="Aire urbaine">Aire urbaine</option>
+           <option value="Vertou">Vertou</option>
+            <option value="Saint Herblain">Saint Herblain</option>
+            <option value="Carquefou">Carquefou</option>
+
+        </select>
+	
+			<hr>
+        <label>Prix moyen au m²</label>
+        <div id="keys"><div style="background-color: rgb(26, 152, 80);">Moins de 2000 €/m²</div><div style="background-color: rgb(102, 189, 99);">2000-2250 €/m²</div><div style="background-color: rgb(166, 217, 106);">2250-2500 €/m²</div><div style="background-color: rgb(217, 239, 139);">2500-2750 €/m²</div><div style="background-color: rgb(254, 224, 139);">2750-3000 €/m²</div><div style="background-color: rgb(253, 174, 97);">3000-3250 €/m²</div><div style="background-color: rgb(244, 109, 67);">3250-3500 €/m²</div><div style="background-color: rgb(215, 48, 39);">Supérieur à 3500 €/m²</div></div>
+    </fieldset>
+	
+			<br>
+				<hr>
+        <label>Choisir un type de bien</label>
+        <select id="filters" name="city">
+            <option value="All" selected="selected">Tous</option>
+            <option value="weekday">Maisons</option>
+			 <option value="weekend">Appartements</option>
+        </select>
+		<hr>
+
+      <p>
+       <b> Données:</b>
+        <a href="https://www.data.gouv.fr/fr/datasets/5cc1b94a634f4165e96436c1/" target="_blank">DVF-DGFiP</a>
+       
+      </p></div>
+
+	
+
+	
+	
+	
+
+
+<div class="hover" id="features"><div id="pd"><h2><strong>Saint-Sébastien-sur-Loire</strong></h2> <hr> <h3><strong>Douet</strong></h3> <p><strong><em>2586 € le m² </em></strong><em> (moyenne 2014-2019) </em></p> <p><strong><em>205372 € </em></strong><em> (prix moyen des biens) </em></p><p><strong> <em>287 biens vendus </em></strong><em> entre 2014 et 2019</em></p><p><strong><em>166</em></strong><em> Maisons</em></p><p><strong><em>121</em></strong><em> Appartements</em></p></div></div>
+
+
+
+<div class="annee">
+  <h3> <hr>
+  <div class="row" id="filtersannee">
+  <input id="Depart" type="radio" name="toggle" value="Depart" checked="checked">
+    <label for="Depart">2014-2019</label>
+    <input id="2014" type="radio" name="toggle" value="2014" <label="" for="2014">2014
+    <input id="2015" type="radio" name="toggle" value="2015">
+    <label for="2015">2015</label>
+    <input id="2016" type="radio" name="toggle" value="2016">
+    <label for="2016">2016</label>
+	<input id="2017" type="radio" name="toggle" value="2017">
+    <label for="2017">2017</label>
+    <input id="2018" type="radio" name="toggle" value="2018">
+    <label for="2018">2018</label>
+    <input id="2019" type="radio" name="toggle" value="2019">
+    <label for="2019">2019</label>
+  </div><hr>
+</h3></div>
+
+
+	
+	
+	<div class="mapboxgl-canary" style="visibility: hidden;"></div><div class="mapboxgl-canvas-container mapboxgl-interactive mapboxgl-touch-drag-pan mapboxgl-touch-zoom-rotate"><canvas class="mapboxgl-canvas" style="position: absolute; width: 1920px; height: 910px;" tabindex="0" aria-label="Map" width="1920" height="910"></canvas></div><div class="mapboxgl-control-container"><div class="mapboxgl-ctrl-top-left"></div><div class="mapboxgl-ctrl-top-right"></div><div class="mapboxgl-ctrl-bottom-left"><div class="mapboxgl-ctrl" style="display: block;"><a class="mapboxgl-ctrl-logo" target="_blank" rel="noopener nofollow" href="https://www.mapbox.com/" aria-label="Mapbox logo"></a></div></div><div class="mapboxgl-ctrl-bottom-right"><div class="mapboxgl-ctrl mapboxgl-ctrl-scale" style="width: 77.1428px;">1km</div><div class="mapboxgl-ctrl mapboxgl-ctrl-attrib"><div class="mapboxgl-ctrl-attrib-inner"><a href="https://www.mapbox.com/about/maps/" target="_blank">© Mapbox</a> <a href="http://www.openstreetmap.org/about/" target="_blank">© OpenStreetMap</a> <a class="mapbox-improve-map" href="https://apps.mapbox.com/feedback/?owner=ninanoun&amp;id=cjswczqwb1dkz1fqtlb01sw0e&amp;access_token=pk.eyJ1IjoibmluYW5vdW4iLCJhIjoiY2pjdHBoZGlzMnV4dDJxcGc5azJkbWRiYSJ9.o4dZRrdHcgVEKCveOXG1YQ" target="_blank" rel="noopener nofollow">Improve this map</a> <a href="https://www.maxar.com/" target="_blank">© Maxar</a></div></div></div></div></div>
+
+
+  
+  
+
+
+</body></html>
